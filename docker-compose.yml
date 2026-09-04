@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  db:
+    image: ankane/pgvector:latest
+    container_name: enterprise_chatbot_db
+    environment:
+      POSTGRES_DB: enterprise_kb_db
+      POSTGRES_USER: chatbot_user
+      POSTGRES_PASSWORD: chatbot_password_secure
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatbot_user -d enterprise_kb_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  fastapi_app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.fastapi
+    container_name: enterprise_fastapi_backend
+    environment:
+      - SQL_USER=chatbot_user
+      - SQL_PASSWORD=chatbot_password_secure
+      - SQL_DB_NAME=enterprise_kb_db
+      - SQL_HOST=db
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-enterprise-chatbot-super-secret-key-123456789}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/app/uploads
+
+  streamlit_app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.streamlit
+    container_name: enterprise_streamlit_frontend
+    environment:
+      - API_URL=http://fastapi_app:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - fastapi_app
+
+volumes:
+  pgdata:
