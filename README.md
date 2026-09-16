@@ -28,19 +28,6 @@ PDF Upload → Text Extraction → Chunking → Embeddings
 User Query → Vector Search → Relevant Context → Gemini → Response
 ```
 
-## Setup
-
-```bash
-git clone https://github.com/YOUR_USERNAME/custom-chatbot-for-enterprise.git
-cd custom-chatbot-for-enterprise
-
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-Create a `.env` file with your database and Gemini API credentials.
-
 ## Author
 
-**Jifi**
+**Jifi Lowrence**
